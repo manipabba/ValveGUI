@@ -25,6 +25,7 @@ Off state represented by uppercase letters, turns pin to LOW voltage, representi
 
 root = Tk()
 
+#global variables
 valP = 32
 
 #adjusting program for DPI of differnt systems
@@ -53,6 +54,13 @@ varLocations  = [list(map(int, lst)) for lst in varLocations] #converting from s
 
 #varLocations = [[77,86],[303,91],[11,225],[11,275],[11,325],[11,375],[90,420],[182,420],[246,420],[314,420]] #coords for Hesam's setup, uses 10s valves
 #------------------------------------------------------------
+
+#canavs and image global variables (used in callback)
+C = ""
+img = PIL.Image.open(LD_filename)
+filename = ImageTk.PhotoImage(img)
+
+
 #defining radiobutton variables as global
 varList = []
 for i in range(0,numValves):
@@ -76,7 +84,7 @@ def send(num):
     #print(data.strip())
     print(num)
     updateRadioButtons(num)
-    
+
 def updateRadioButtons(num):
     #upodating buttons based on num val passed in from send()
     try:
@@ -87,6 +95,7 @@ def updateRadioButtons(num):
 
     except KeyError:
         print("value out of dictonary sent")
+
 #exception handeler helper method to processCommand2()
 def exceptionHandler(btn, btn_text, text, TWindow):
     text = text.strip()
@@ -106,12 +115,12 @@ def exceptionHandler(btn, btn_text, text, TWindow):
             #making sure 10 states are given
             if(len(sequence) != numValves):
                 raise IndentationError
-            
+
             #running through each value in string
             for valveIdx in range(1,len(sequence)+1):
                 if sequence[valveIdx-1] != '1' and sequence[valveIdx-1] != '0' and sequence[valveIdx-1] != 'x' and sequence[valveIdx-1] != 'y':
                     raise IndexError
-               
+
     #error handeling
     except IOError:
         btn_text.set("Error")
@@ -129,9 +138,9 @@ def exceptionHandler(btn, btn_text, text, TWindow):
         btn_text.set("Error")
         messagebox.showinfo("Command Failiure", "Time must be an integer or decimal")
         return False
-        
+
     btn.config(state='normal') #enabling command button
-    btn_text.set("Send Command")   
+    btn_text.set("Send Command")
     return True
 
 #updated process command for text window
@@ -153,7 +162,7 @@ def processCommand2(btn, btn_text, text, TWindow):
         for line in textData:
             timeDelay = float(line.split()[0]) #time of state
             sequence = str(line.split()[1]) #state values
-            
+
             time.sleep(timeDelay - timePrevious)
             timePrevious = timeDelay #updating previous time counter
             #XY feature not working yet and is slowing down execution
@@ -194,7 +203,7 @@ def processCommand2(btn, btn_text, text, TWindow):
     btn.config(state='normal') #enabling command button
     btn_text.set("Send Command")
 
-   #previous process command 
+#previous process command
 def processCommand(btn, btn_text, text, TWindow):
     text = text.strip() #stripping white space
     btn.config(state='disabled') #disabling command button
@@ -209,12 +218,12 @@ def processCommand(btn, btn_text, text, TWindow):
                 raise IndexError()
             valveVal = int(command.split("T")[0][1:]) #splitting valve val
             send(valveOnDict[valveVal]) #closing valves initally
-        #'''  
+        #'''
         #running through all commands with given time delays
         for command in textData:
             if command[0] != "V": #making sure syntax is followed
                 raise IndexError()
-            
+
             valveVal = int(command.split("T")[0][1:]) #splitting valve value
             timeVal = float(command.split("T")[1]) #splitting time value
 
@@ -248,10 +257,10 @@ def updatePressure(label):
 
 def close():
     MsgBox = messagebox.askquestion ('Exit Application','Are you sure you want to exit the application',icon = 'warning')
-    if MsgBox == 'yes':   
+    if MsgBox == 'yes':
         #ser.close()
         root.destroy()
-#method for help box        
+#method for help box
 def helpText():
     messagebox.showinfo("Command Window Help","Type in sequences in the form of X Y where X is the absolute time from 0 when Y should triggered. Y is a binary sequence representing the value of every state. An example of a command would be 0 1111111110, which means at time=0, all the valves are on except the valve 10, which is off. Multiple lines can be entred representing states at differnt times.")
     #messagebox.showinfo("Command Window Help","Type in commands in the form VxTy where x represents the valve number and where y represents the time the valve is open. All valves in the sequence are close intially, opened for the allocated time, then closed at end of allocated time constraint. Add multiple commands by running 1 command per line to run a sequence.")
@@ -278,7 +287,7 @@ def load_command(TWindow):
     except FileNotFoundError:
         messagebox.showinfo("Error", "File not found!")
 
-    
+
 def sequence1(btn, btn_text, e1, e2, e3):
     btn.config(state='disabled') #disabling command button
     btn_text.set("Running Sequence")
@@ -314,12 +323,12 @@ def sequence1(btn, btn_text, e1, e2, e3):
         send(valveOffDict[3])
         send(valveOffDict[4])
         send(valveOffDict[9])
-        send(valveOffDict[10])        
+        send(valveOffDict[10])
 
     except ValueError:
             btn_text.set("Error")
             messagebox.showinfo("Command Failiure", "Can only type numeric values!")
-        
+
     btn.config(state='normal') #enabling command button
     btn_text.set("Run Sequence 1")
 
@@ -356,12 +365,12 @@ def sequence2(btn, btn_text, e4, e5, e6):
         send(valveOffDict[3])
         send(valveOffDict[4])
         send(valveOffDict[9])
-        send(valveOffDict[10])        
+        send(valveOffDict[10])
 
     except ValueError:
             btn_text.set("Error")
             messagebox.showinfo("Command Failiure", "Can only type numeric values!")
-        
+
     btn.config(state='normal') #enabling command button
     btn_text.set("Run Sequence 2")
 
@@ -415,8 +424,83 @@ def sequence_setup():
     btn_text_seq2.set("Run Sequence 2")
     sendSeq2 = Button(subFrameTopRight, relief=GROOVE, text="Test",textvariable=btn_text_seq2, command = lambda:_thread.start_new_thread(sequence2,(sendSeq2, btn_text_seq2, e4.get(), e5.get(), e6.get()))) #add menu bar with 'help' that shows command syntax
     sendSeq2.grid(row = 10, column = 0, columnspan = 2)
-    
+
     root2.mainloop()
+
+def auto_control():
+    root2 = Toplevel();
+    #subFrameTopRight = Frame(root2, width = 474, height = 450, bg = 'white')
+    subFrameTopRight = Frame(root2, bg = 'white')
+    subFrameTopRight.pack(side=TOP)
+    subFrameTopRight.pack_propagate(0)
+    #-------Default Values-----------
+    #NOT WORKING RIGHT NOW, NOT CRITICAL TO PROGRAM
+    #Note: issue with mainloop(), breaking send function while all other send() calls within method
+    #root.after(500, set_default_state) #setting valves to default values
+    tempVar = IntVar()
+    tempB = Radiobutton(root, variable=tempVar, command=lambda:_thread.start_new_thread(set_defualt_state, ()))
+    tempB2 = Radiobutton(root, variable=tempVar, command=lambda:_thread.start_new_thread(set_defualt_state, ()))
+    tempVar.set(1);
+
+    #--------------------------------
+
+    l1 = Label(subFrameTopRight, text = "Sample Injection and Discritization", bg = 'white')
+    l1.config(font=(14))
+    l1.grid(row=0, column=0, columnspan = 2)
+    #Label(subFrameTopRight, text="Time between sample injection start and end:    ", bg = 'white').grid(row=1, column=0)
+    #e1 = Entry(subFrameTopRight)
+    #e1.grid(row=1, column=1)
+    btn_text_inject = StringVar()
+    btn_text_inject.set("Slug Generation")
+    injectBtn = Button(subFrameTopRight, relief=GROOVE, textvariable=btn_text_inject, command=lambda:_thread.start_new_thread(inject, (injectBtn, btn_text_inject)))
+    injectBtn.grid(row=2, column = 0, columnspan = 2)
+    Label(subFrameTopRight, bg='white').grid(row=3)
+
+    l2 = Label(subFrameTopRight, text = "Select Desired Droplets", bg = 'white')
+    l2.config(font=(14))
+    l2.grid(row=4, column=0, columnspan = 2)
+
+    cBoxFrame = Frame(subFrameTopRight, bg = 'white')
+    cBoxFrame.grid(row=5, column=0, columnspan=4)
+    Label(cBoxFrame,text="Valve 6", bg = 'white').grid(row=5, column=0)
+    Label(cBoxFrame,text="Valve 5", bg = 'white').grid(row=5, column=2)
+    Label(cBoxFrame,text="Valve 4", bg = 'white').grid(row=5, column=4)
+    Label(cBoxFrame,text="Valve 3", bg = 'white').grid(row=5, column=6)
+
+    c1_val = IntVar()
+    c1 = Checkbutton(cBoxFrame, variable = c1_val,  bg='white')
+    c1.grid(row=6, column=0)
+    c2_val = IntVar()
+    Label(cBoxFrame, text="\t", bg='white').grid(row=6, column=1)
+    c2 = Checkbutton(cBoxFrame, variable = c2_val,  bg='white')
+    c2.grid(row=6, column=2)
+    Label(cBoxFrame, text="\t", bg='white').grid(row=6, column=3)
+    c3_val = IntVar()
+    c3 = Checkbutton(cBoxFrame, variable = c3_val,  bg='white')
+    c3.grid(row=6, column=4)
+    Label(cBoxFrame, text="\t", bg='white').grid(row=6, column=5)
+    c4_val = IntVar()
+    c4 = Checkbutton(cBoxFrame, variable = c4_val,  bg='white')
+    c4.grid(row=6, column=6)
+
+    btn_text_release = StringVar()
+    btn_text_release.set("Release Droplet 6")
+    releaseBtn = Button(subFrameTopRight, relief=GROOVE, textvariable=btn_text_release, command=lambda:_thread.start_new_thread(release_samples, (releaseNum, releaseBtn, btn_text_release,c1_val.get(),c2_val.get(),c3_val.get(),c4_val.get())))
+    releaseBtn.grid(row=6, column=0, columnspan=2)
+    releaseNum = IntVar()
+    releaseNum.set(1)
+    Label(subFrameTopRight, bg='white').grid(row=7)
+
+    l3 = Label(subFrameTopRight, text = "Release Selected Droplets", bg = 'white')
+    l3.config(font=(14))
+    l3.grid(row=8, column=0, columnspan = 2)
+    text_final = StringVar()
+    text_final.set("Release Merged Droplets")
+    finalButton = Button(subFrameTopRight, relief=GROOVE, textvariable=text_final, command=lambda:_thread.start_new_thread(launch, (text_final, finalButton)))
+    finalButton.grid(row=9, column=0, columnspan=2)
+    Label(subFrameTopRight, text='', bg='white').grid(row=10, column=0)
+
+
 def set_default_state():
     send(valveOnDict[8])
     send(valveOnDict[1])
@@ -487,8 +571,8 @@ def release_samples(releaseNum, btn, btn_text,c1,c2,c3,c4):
         btn_text.set("Release Droplet 6")
     btn.config(state='normal')
 
-    
-#helper methods to relase dropletts 
+
+#helper methods to relase dropletts
 def release_yes(valve):
     send(valveOnDict[valve])
     send(valveOnDict[7])
@@ -522,25 +606,44 @@ def default_setup():
     MsgBox = messagebox.askquestion ('Restart Application','Do you want to apply new changes now?',icon = 'warning')
     if MsgBox == "yes":
         close()
+
+def configure_canvas_size(event):
+    C.delete("all")
+    w,h = event.width, event.height
+    img = img.resize((w,h),PIL.Image.ANTIALIAS)
+    filename = ImageTk.PhotoImage(img)
+    C.create_image(0, 0, anchor=NW, image=filename)
+    print("size: ",w,h)
+
+
+
 #root setup
 root.title("Valve Toggler")
-root.geometry("1084x554")
-root.resizable(0,0)
+root.geometry("1084x490")
+#root.resizable(0,0)
 root.configure(background='white')
 root.protocol("WM_DELETE_WINDOW", close)
 
 #top frame setup
-topFrame = Frame(root, width=1084, height=30)
+#topFrame = Frame(root, width=1084, height=30)
+'''
+topFrame = Frame(root)
+
 topFrame.pack(side=TOP)
 topFrame.grid_propagate(0)
+'''
 
 #left frame setup
-leftFrame = Frame(root, width=410, height=474)
-leftFrame.pack(side=LEFT)
+#leftFrame = Frame(root, width=410, height=474)
+leftFrame = Frame(root, bg="white")
+leftFrame.pack(side=LEFT, fill="both", expand=True)
+#leftFrame.grid(row=0, column=0, columnspan=2)
 
 #right frame setup
-rightFrame = Frame(root, width=674, height=474)
+#rightFrame = Frame(root, width=674, height=474)
+rightFrame = Frame(root)
 rightFrame.pack(side=RIGHT)
+#rightFrame.grid(row=0, column=2)
 
 #Menu bar setup
 menubar = Menu(root)
@@ -548,26 +651,42 @@ filemenu = Menu(menubar)
 filemenu.add_command(label="Save Command Data", command=lambda:save_command(TWindow))
 filemenu.add_command(label="Load Command Data", command=lambda:load_command(TWindow))
 menubar.add_cascade(label="File", menu=filemenu)
+
 menubar.add_command(label="Help", command=helpText)
-menubar.add_command(label="Run Sequences", command=sequence_setup)
+
+sequencemenu = Menu(menubar);
+sequencemenu.add_command(label="Run Sequences", command=sequence_setup)
+sequencemenu.add_command(label="Run Automatic Control", command=auto_control)
+menubar.add_cascade(label="Sequences", menu=sequencemenu)
+#menubar.add_command(label="Run Sequences", command=sequence_setup)
 menubar.add_command(label="Setup New Experiment",command=lambda:default_setup())
 menubar.add_command(label="Exit", command=lambda:close())
 root.config(menu=menubar)
 
 
 #Image Placement
-C = Canvas(leftFrame, bg="white", height=474, width=400)
+#C = Canvas(leftFrame, bg="white", height=474, width=400)
+C = Canvas(leftFrame, bg="white")
 
+'''
 img = PIL.Image.open(LD_filename)
-img = img.resize((400,474),PIL.Image.ANTIALIAS)
+#img = img.resize((400,474),PIL.Image.ANTIALIAS)
 #filename = PhotoImage(file = LD_filename)
 filename = ImageTk.PhotoImage(img)
+'''
+img = img.resize((leftFrame.winfo_width(),rightFrame.winfo_height()),PIL.Image.ANTIALIAS)
+C.create_image(0, 0, anchor=NW, image=filename)
 
+'''
 background_label = Label(leftFrame, image=filename)
 background_label.place(x=0, y=0, relwidth=1, relheight=1)
-C.pack()
+background_label.place(x=0, y=0)
+'''
+#C.bind("<Configure>", configure_canvas_size)
+C.pack(expand=True, fill="both")
 
 #Top Frame Content
+'''
 subFrame1 = Frame(topFrame, width=410,height=30, bg = 'white')
 labelTopL = Label(subFrame1, text = "Manual Control", bg="white")
 labelTopL.config(font=(20))
@@ -579,22 +698,26 @@ labelTopR = Label(subFrame2, text = "Automatic Control", bg = 'white')
 labelTopR.config(font=(20))
 labelTopR.place(relx=.5, rely=.5, anchor="center")
 subFrame2.pack(side=RIGHT)
+'''
 
 #Right Frame Content
-subFrameTop = Frame(rightFrame, width=674, height = 450, bg = 'white')
-subFrameTop.pack(side=TOP)
-subFrameTop.pack_propagate(0)
+
+subFrameTop = Frame(rightFrame, bg = 'white')
+#subFrameTop = Frame(rightFrame, width=674, height = 450, bg = 'white')
+subFrameTop.pack(side=TOP, fill=BOTH)
+#subFrameTop.pack_propagate(0)
 
 #runs on new thread
 #sendDat = Button(subFrameTop, text = "Send Command",command = lambda:processCommand(TWindow.get("1.0",END), TWindow)) #add menu bar with 'help' that shows command syntax
 
 btn_text = StringVar()
 btn_text.set("Send Command")
-subFrameTopLeft = Frame(subFrameTop, width = 200, height = 450)
+#subFrameTopLeft = Frame(subFrameTop, width = 200, height = 450)
+subFrameTopLeft = Frame(subFrameTop)
 subFrameTopLeft.pack(side=LEFT)
-subFrameTopLeft.pack_propagate(0)
+#subFrameTopLeft.pack_propagate(0)
 
-sendDat = Button(subFrameTopLeft, relief=GROOVE,  textvariable=btn_text,command = lambda:_thread.start_new_thread(processCommand2,(sendDat, btn_text, TWindow.get("1.0",END), TWindow))) #add menu bar with 'help' that shows command syntax
+sendDat = Button(subFrameTopLeft, relief=GROOVE, textvariable=btn_text,command = lambda:_thread.start_new_thread(processCommand2,(sendDat, btn_text, TWindow.get("1.0",END), TWindow))) #add menu bar with 'help' that shows command syntax
 sendDat.pack(side=BOTTOM, fill = X)
 
 S = Scrollbar(subFrameTopLeft)
@@ -604,7 +727,8 @@ TWindow.pack(side=LEFT,fill=Y)
 S.config(command=TWindow.yview)
 TWindow.config(yscrollcommand=S.set)
 #-------------------------
-subFrameTopRight = Frame(subFrameTop, width = 474, height = 450, bg = 'white')
+#subFrameTopRight = Frame(subFrameTop, width = 474, height = 450, bg = 'white')
+subFrameTopRight = Frame(subFrameTop, bg = 'white')
 subFrameTopRight.pack(side=TOP)
 subFrameTopRight.pack_propagate(0)
 #-------Default Values-----------
@@ -618,6 +742,7 @@ tempVar.set(1);
 
 #--------------------------------
 
+''' #moved into auto_control function
 l1 = Label(subFrameTopRight, text = "Sample Injection and Discritization", bg = 'white')
 l1.config(font=(14))
 l1.grid(row=0, column=0, columnspan = 2)
@@ -673,7 +798,7 @@ text_final.set("Release Merged Droplets")
 finalButton = Button(subFrameTopRight, relief=GROOVE, textvariable=text_final, command=lambda:_thread.start_new_thread(launch, (text_final, finalButton)))
 finalButton.grid(row=9, column=0, columnspan=2)
 Label(subFrameTopRight, text='', bg='white').grid(row=10, column=0)
-
+'''
 
 '''
 
@@ -688,17 +813,25 @@ Label(subFrameTopRight, text='', bg='white').grid(row=10, column=0)
 '''
 
 #-------------------------
-subFrameBot = Frame(rightFrame, width=674, height = 24)
-subFrameBot.pack(side=BOTTOM)
+#subFrameBot = Frame(rightFrame, width=674, height = 24)
+subFrameBot = Frame(rightFrame, bg="white")
 
 stringV = StringVar()
 stringV.set("Current Pressure " + str(valP) + " kPa")
-pLabel = Label(subFrameBot,textvariable = stringV, width = 50, bg = 'white')
+#pLabel = Label(subFrameBot,textvariable = stringV, width = 50, bg = 'white')
+#setP = Button(subFrameBot, relief=GROOVE, text = "Set Pressure", width = 30,command = lambda:updatePressure(valP))
+#exitB =Button(subFrameBot, relief=GROOVE, text = "Exit", width = 12, command = lambda:close())
+pLabel = Label(subFrameBot,textvariable = stringV, bg = 'white')
 setP = Button(subFrameBot, relief=GROOVE, text = "Set Pressure", width = 30,command = lambda:updatePressure(valP))
 exitB =Button(subFrameBot, relief=GROOVE, text = "Exit", width = 12, command = lambda:close())
-pLabel.grid(row = 0, column = 0, sticky=E)
-setP.grid(row = 0, column = 1)
-exitB.grid(row = 0, column = 2, sticky=W)
+
+
+pLabel.grid(row = 0, column = 0, columnspan=3)
+setP.grid(row = 0, column = 3, columnspan=2)
+exitB.grid(row = 0, column = 5)
+
+subFrameBot.pack(side=BOTTOM, expand=True, fill="both")
+
 
 #Radio Buttons for leftFrame
 
@@ -710,7 +843,7 @@ for i in range(0,numValves):
     BO =  Radiobutton(frameT,text="On", variable = varList[i], value = 1, indicatoron = 0, bg = 'white', command =partial(send,von)) #using partial bc lambda fucntion doesnt work well in loops
     BF = Radiobutton(frameT,text="Off", variable = varList[i], value = 0, indicatoron  = 0, bg = 'white', command =partial(send,voff))
     labelTemp = Label(frameT,text = "Valve %d" % (i+1), bg = 'gray99')
-    
+
     labelTemp.pack(side=TOP, fill=X)
     BO.pack(side=LEFT)
     BF.pack(side=RIGHT)
@@ -718,5 +851,3 @@ for i in range(0,numValves):
     frameList.append(frameT)
 
 root.mainloop()
-
-
