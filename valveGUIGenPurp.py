@@ -10,10 +10,11 @@ from timeit import default_timer as timer
 import PIL.Image
 from PIL import ImageTk
 from functools import partial
+from setupGUI import SetupWindow
 
 '''
 #Mani Pabba
-#Last Updated: 1/7/2020
+#Last Updated: 11/16/2020
 Notes:
 On state represented by lowercase letters, turns pin to HIGH voltage, representing closed state of valve
 Off state represented by uppercase letters, turns pin to LOW voltage, representing open state of valve
@@ -602,7 +603,10 @@ def launch(var, btn):
     var.set("Release Merged Droplets")
 
 def default_setup():
-    os.system('python setupGUI.py')
+    #os.system('python setupGUI.py')
+    root2 = Toplevel();
+    setup = SetupWindow(root2)
+    root2.mainloop();
     MsgBox = messagebox.askquestion ('Restart Application','Do you want to apply new changes now?',icon = 'warning')
     if MsgBox == "yes":
         close()
